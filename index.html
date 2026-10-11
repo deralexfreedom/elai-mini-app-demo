@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Демо · мини-приложение Элая</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  /* Цвета только из темы Telegram (themeParams → CSS-переменные); запасные значения — для открытия в обычном браузере. */
+  :root { color-scheme: light dark; }
+  body { margin: 0; font: -apple-system-body; font-family: -apple-system, system-ui, sans-serif;
+         background: var(--tg-theme-secondary-bg-color, #f1f1f4); color: var(--tg-theme-text-color, #111);
+         padding: calc(12px + var(--tg-content-safe-area-inset-top, 0px)) 16px calc(24px + var(--tg-safe-area-inset-bottom, 0px)); }
+  h1 { font-size: 1.25rem; margin: 4px 0 12px; }
+  .demo { font-size: .8rem; color: var(--tg-theme-hint-color, #777); margin-bottom: 12px; }
+  .blok { background: var(--tg-theme-section-bg-color, var(--tg-theme-bg-color, #fff)); border-radius: 12px; margin-bottom: 12px; overflow: hidden; }
+  .stroka { padding: 12px 14px; border-bottom: 1px solid var(--tg-theme-section-separator-color, #ddd); }
+  .stroka:last-child { border-bottom: 0; }
+  .nomer { font-size: .8rem; color: var(--tg-theme-hint-color, #777); }
+  .srok { font-weight: 600; color: var(--tg-theme-destructive-text-color, #c00); }
+  label { display: block; font-size: .8rem; color: var(--tg-theme-section-header-text-color, #777); margin: 0 0 4px; }
+  input, select, textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 10px; border-radius: 8px;
+         border: 1px solid var(--tg-theme-section-separator-color, #ccc); background: var(--tg-theme-bg-color, #fff); color: inherit; }
+  .filtry { display: flex; gap: 8px; margin-bottom: 12px; }
+  .filtry button { flex: 1; font: inherit; padding: 8px; border-radius: 8px; border: 0; min-height: 44px;
+         background: var(--tg-theme-bg-color, #fff); color: var(--tg-theme-text-color, #111); }
+  .filtry button[aria-pressed=true] { background: var(--tg-theme-button-color, #2481cc); color: var(--tg-theme-button-text-color, #fff); }
+  #sost { font-size: .75rem; color: var(--tg-theme-hint-color, #777); white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Документы</h1>
+<div class="demo">Демо. Данные вымышленные, ничего никуда не отправляется.</div>
+<div class="filtry" role="group" aria-label="Фильтр">
+  <button aria-pressed="true" data-f="vse">Все · 3</button>
+  <button aria-pressed="false" data-f="prosr">Просрочено · 1</button>
+  <button aria-pressed="false" data-f="seg">Сегодня · 1</button>
+</div>
+<div class="blok" id="spisok">
+  <div class="stroka" data-t="prosr"><div class="nomer">Демо-вх-0412 · от 02.10.2026</div>О согласовании графика работ<div class="srok">Просрочено на 3 дня</div></div>
+  <div class="stroka" data-t="seg"><div class="nomer">Демо-вх-0420 · от 09.10.2026</div>Заявка на поставку (демо)<div>Срок сегодня, 11.10.2026</div></div>
+  <div class="stroka" data-t="ok"><div class="nomer">Демо-сз-0077 · от 10.10.2026</div>Служебная записка (демо)<div>Срок 15.10.2026</div></div>
+</div>
+<h1>Поручение (форма)</h1>
+<div class="blok">
+  <div class="stroka"><label for="isp">Исполнитель</label><select id="isp"><option>Исполнитель Демо-1</option><option>Исполнитель Демо-2</option></select></div>
+  <div class="stroka"><label for="srok">Срок</label><input id="srok" type="date" value="2026-10-15"></div>
+  <div class="stroka"><label for="txt">Текст поручения</label><textarea id="txt" rows="3" placeholder="Нажмите сюда — откроется экранная клавиатура"></textarea></div>
+</div>
+<div id="sost"></div>
+<script>
+  const tg = window.Telegram && Telegram.WebApp;
+  document.querySelectorAll('.filtry button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('.filtry button').forEach(x => x.setAttribute('aria-pressed', x === b));
+    document.querySelectorAll('#spisok .stroka').forEach(s => s.hidden = b.dataset.f !== 'vse' && s.dataset.t !== b.dataset.f);
+    tg && tg.HapticFeedback && tg.HapticFeedback.selectionChanged();
+  });
+  function sost() {
+    if (!tg) { document.getElementById('sost').textContent = 'Открыто не в Telegram.'; return; }
+    document.getElementById('sost').textContent = 'Демо-состояние · платформа ' + tg.platform + ' · версия ' + tg.version + ' · тема ' + tg.colorScheme +
+      '\nвысота окна ' + Math.round(tg.viewportHeight) + ' · устойчивая ' + Math.round(tg.viewportStableHeight) + ' · развёрнуто ' + tg.isExpanded;
+  }
+  if (tg) {
+    tg.ready(); tg.expand();
+    tg.MainButton.setText('Создать поручение (демо)'); tg.MainButton.show();
+    tg.MainButton.onClick(() => tg.showAlert('Демо: поручение не создано, действия нет в коде Элая.'));
+    tg.onEvent('viewportChanged', sost); tg.onEvent('themeChanged', sost);
+  }
+  sost();
+</script>
+</body>
+</html>
